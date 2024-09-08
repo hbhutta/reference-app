@@ -1,15 +1,24 @@
 import {
   CameraView,
-  CameraType,
   useCameraPermissions,
   BarcodeScanningResult,
 } from "expo-camera";
-import { Button, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { useState } from "react";
+import { Button, StyleSheet, Text, View } from "react-native";
 
 import Book from "@/constants/Book";
 
 export default function TabTwoScreen() {
   const [permission, requestPermission] = useCameraPermissions();
+  // const [barcodeScanned, setBarcodeScanned] = useState(false);
+  let null_book: Book = {
+    title: "",
+    author: "",
+    pubYear: 0,
+    numPages: 0,
+    coverImgURL: "",
+  };
+  const [book, setBook] = useState(null_book);
 
   if (!permission) {
     // Camera permissions are still loading.
@@ -28,7 +37,7 @@ export default function TabTwoScreen() {
     );
   }
 
-  async function getBookInfo(ISBN: String) {
+  async function getBookInfo(ISBN: string) {
     try {
       const book_info_response = await fetch(
         `https://openlibrary.org/isbn/${ISBN}.json`
@@ -43,27 +52,27 @@ export default function TabTwoScreen() {
 
       let full_author_id = book_info_json.authors[0].key;
 
-      var str: String = "/authors/OL59188A";
-
       var total_length: number = full_author_id.length; // "/authors/" is length 9
       var id_length: number = total_length - 9;
-      var author_id: string = str.substring(id_length + 1);
+      var author_id: string = full_author_id.substring(id_length + 1);
 
       const author_name = await getAuthorInfo(author_id);
 
-      const final_book_info = {
-        _title: title,
-        _author_name: author_name,
-        _number_of_pages: number_of_pages,
-        _cover_img: cover_img,
-        _pub_year: pub_year,
+      const final_book: Book = {
+        title: title,
+        author: author_name,
+        numPages: number_of_pages,
+        coverImgURL: cover_img,
+        pubYear: pub_year,
       };
-
-      console.log("final_book_info");
-      console.log(final_book_info);
+      setBook(final_book);
+      console.log(book);
     } catch (error) {
       console.log(error);
     }
+    // finally {
+    //   setBarcodeScanned(false); // Reset scanning state
+    // }
   }
 
   async function getCoverInfo(cover_id: any) {
@@ -82,13 +91,17 @@ export default function TabTwoScreen() {
     return author;
   }
 
+  function handleBarcodeScanned(scanningresult: BarcodeScanningResult) {
+    getBookInfo(scanningresult.data);
+  }
+
   return (
     <View style={styles.container}>
       <CameraView
         style={styles.camera}
         facing={"back"}
-        onBarcodeScanned={async (scanningresult: BarcodeScanningResult) => {
-          await getBookInfo(scanningresult.data);
+        onBarcodeScanned={(scanningresult: BarcodeScanningResult) => {
+          handleBarcodeScanned(scanningresult);
         }}
       >
         <View style={styles.buttonContainer}></View>
