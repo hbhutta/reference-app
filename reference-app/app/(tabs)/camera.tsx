@@ -3,39 +3,17 @@ import {
   useCameraPermissions,
   BarcodeScanningResult,
 } from "expo-camera";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button, StyleSheet, Text, View } from "react-native";
 
 import Book from "@/constants/Book";
 
 export default function TabTwoScreen() {
+  console.log("testing");
+
+  const [ISBN, setISBN] = useState("");
+  const [bookInfo, setBookInfo] = useState<Book | null>(null);
   const [permission, requestPermission] = useCameraPermissions();
-  // const [barcodeScanned, setBarcodeScanned] = useState(false);
-  let null_book: Book = {
-    title: "",
-    author: "",
-    pubYear: 0,
-    numPages: 0,
-    coverImgURL: "",
-  };
-  const [book, setBook] = useState(null_book);
-
-  if (!permission) {
-    // Camera permissions are still loading.
-    return <View />;
-  }
-
-  if (!permission.granted) {
-    // Camera permissions are not granted yet.
-    return (
-      <View style={styles.container}>
-        <Text style={styles.message}>
-          We need your permission to show the camera
-        </Text>
-        <Button onPress={requestPermission} title="grant permission" />
-      </View>
-    );
-  }
 
   async function getBookInfo(ISBN: string) {
     try {
@@ -65,14 +43,11 @@ export default function TabTwoScreen() {
         coverImgURL: cover_img,
         pubYear: pub_year,
       };
-      setBook(final_book);
-      console.log(book);
+      setBookInfo(final_book);
+      console.log(bookInfo);
     } catch (error) {
       console.log(error);
     }
-    // finally {
-    //   setBarcodeScanned(false); // Reset scanning state
-    // }
   }
 
   async function getCoverInfo(cover_id: any) {
@@ -91,8 +66,30 @@ export default function TabTwoScreen() {
     return author;
   }
 
-  function handleBarcodeScanned(scanningresult: BarcodeScanningResult) {
-    getBookInfo(scanningresult.data);
+  // useEffect that runs the moment the ISBN state changes (or is set for the first time)
+  useEffect(() => {
+    // This gives "rendered more hooks than during the previous render error" ????
+    if (ISBN) {
+      console.log(ISBN);
+      getBookInfo(ISBN);
+    }
+  }, [ISBN]);
+
+  if (!permission) {
+    // Camera permissions are still loading.
+    return <View />;
+  }
+
+  if (!permission.granted) {
+    // Camera permissions are not granted yet.
+    return (
+      <View style={styles.container}>
+        <Text style={styles.message}>
+          We need your permission to show the camera
+        </Text>
+        <Button onPress={requestPermission} title="grant permission" />
+      </View>
+    );
   }
 
   return (
@@ -100,8 +97,11 @@ export default function TabTwoScreen() {
       <CameraView
         style={styles.camera}
         facing={"back"}
+        // onBarcodeScanned={(scanningresult: BarcodeScanningResult) => {
+        //   handleBarcodeScanned(scanningresult);
+        // }}
         onBarcodeScanned={(scanningresult: BarcodeScanningResult) => {
-          handleBarcodeScanned(scanningresult);
+          setISBN(scanningresult.data);
         }}
       >
         <View style={styles.buttonContainer}></View>
