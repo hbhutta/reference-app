@@ -68,7 +68,6 @@ export default function TabTwoScreen() {
 
   // useEffect that runs the moment the ISBN state changes (or is set for the first time)
   useEffect(() => {
-    // This gives "rendered more hooks than during the previous render error" ????
     if (ISBN) {
       console.log(ISBN);
       getBookInfo(ISBN);
