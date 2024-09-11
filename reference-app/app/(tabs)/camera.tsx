@@ -24,10 +24,7 @@ import Book from "@/constants/Book";
 //   coverImgURL: string; // url
 // }
 
-// const API_KEY = 'AIzaSyBKAoyDB2sxyZtD9gZ63BaL48J3m7O7T0A';
-
 export default function TabTwoScreen() {
-  console.log("testing");
 
   const [ISBN, setISBN] = useState("");
   const [permission, requestPermission] = useCameraPermissions();
